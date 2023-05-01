@@ -3,15 +3,19 @@ package com.example.mypaymentapp
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mypaymentapp.databinding.ActivityMainBinding
+import java.math.BigDecimal
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val TAG = "MyPaymentApp"
+    private var paymentRequestCode = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,7 +23,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setUpView()
+    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d(TAG,"onActivityResult requestCode " + requestCode + " resultCode " + resultCode);
+        if(requestCode == paymentRequestCode){
+            if(resultCode == RESULT_OK){
+                Log.d(TAG,"result ok");
+                handleTransactionResponse(data);
+            } else if(resultCode == RESULT_CANCELED){
+                Log.d(TAG,"result cancelled");
+                handleTransactionResponse(data);
+            }
+        }
     }
 
     private fun setUpView() {
@@ -60,9 +77,52 @@ class MainActivity : AppCompatActivity() {
 
     private fun createPaymentIntent(total: Float) {
         val paymentUrl = "payanywhere://payment/"
-        val paymentRequestCode = 123
+        paymentRequestCode = 123
 
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$paymentUrl?chargeAmount=$total"))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$paymentUrl?itemName=Coffee%20Store%20Total&chargeAmount=$total"))
         startActivityForResult(intent, paymentRequestCode)
     }
+
+    private val EXTRA_TRANSACTION_RESULT = "transactionResult"
+    private val EXTRA_TRANSACTION_UNIQUE_ID = "transactionUniqueId"
+    private val EXTRA_RECEIPT_ID = "receiptId"
+    private val EXTRA_PARTIAL_AUTH = "isPartialAuth"
+    private val EXTRA_REQUESTED_AMOUNT = "requestedAmount"
+    private val EXTRA_AUTHORIZED_AMOUNT = "authorizedAmount"
+    private val EXTRA_TRANSACTION_ACTION = "transactionAction"
+    private val EXTRA_CUSTOMER_TRANSACTION_ID = "customerTransactionId"
+    private val EXTRA_INVOICE_NUMER = "invoiceNumber"
+
+
+    private fun handleTransactionResponse(data: Intent?) {
+        if(data != null){
+            val transactionResult = data.getStringExtra(EXTRA_TRANSACTION_RESULT);
+            val transactionUniqueId = data.getStringExtra(EXTRA_TRANSACTION_UNIQUE_ID);
+            val receiptId = data.getLongExtra(EXTRA_RECEIPT_ID, 0);
+            val customerTransactionId = data.getStringExtra(EXTRA_CUSTOMER_TRANSACTION_ID);
+            val invoiceNumber = data.getStringExtra(EXTRA_INVOICE_NUMER);
+            val transactionAction = data.getStringExtra(EXTRA_TRANSACTION_ACTION);
+            val isPartialAuth = data.getBooleanExtra(EXTRA_PARTIAL_AUTH, false);
+
+            var requestedAmount: BigDecimal? = null;
+            if(data.getSerializableExtra(EXTRA_REQUESTED_AMOUNT) != null){
+                requestedAmount = data.getSerializableExtra(EXTRA_REQUESTED_AMOUNT) as BigDecimal?;
+            }
+            var authorizedAmount: BigDecimal? = null;
+            if(data.getSerializableExtra(EXTRA_AUTHORIZED_AMOUNT) != null){
+                authorizedAmount = data.getSerializableExtra(EXTRA_AUTHORIZED_AMOUNT) as BigDecimal
+            }
+
+            Log.i(TAG, "Transaction Result: $transactionResult")
+            Log.i(TAG, "Transaction Unique ID: $transactionUniqueId")
+            Log.i(TAG, "Receipt ID: $receiptId")
+            Log.i(TAG, "Customer Transaction ID: $customerTransactionId")
+            Log.i(TAG, "Invoice Number: $invoiceNumber")
+            Log.i(TAG, "Transaction Action: $transactionAction")
+            Log.i(TAG, "Is Partial Auth?: $isPartialAuth")
+            Log.i(TAG, "Requested Amount:$requestedAmount")
+            Log.i(TAG, "Authorized Amount: $authorizedAmount")
+        }
+    }
+
 }

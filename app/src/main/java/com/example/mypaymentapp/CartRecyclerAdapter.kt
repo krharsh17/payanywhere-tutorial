@@ -13,6 +13,7 @@ import kotlin.collections.ArrayList
 class CartRecyclerAdapter(private val dataSet: ArrayList<CartItem>) :
     RecyclerView.Adapter<CartRecyclerAdapter.ViewHolder>() {
 
+    // This class contains the bindings between your data object (of the type CartItem) and the elements from your item's layout
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView
         val description: TextView
@@ -30,7 +31,7 @@ class CartRecyclerAdapter(private val dataSet: ArrayList<CartItem>) :
         }
     }
 
-
+    // This is a boilerplate method that inflates your item layout for each item in the list
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
 
         val view = LayoutInflater.from(viewGroup.context)
@@ -39,6 +40,7 @@ class CartRecyclerAdapter(private val dataSet: ArrayList<CartItem>) :
         return ViewHolder(view)
     }
 
+    // This method enables you to handle data population for each item from the given data object
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
 
@@ -56,6 +58,7 @@ class CartRecyclerAdapter(private val dataSet: ArrayList<CartItem>) :
 
     }
 
+    // This method is called internally to determine how many items are to be rendered in the list
     override fun getItemCount() = dataSet.size
 
 }
